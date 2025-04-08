@@ -1,8 +1,7 @@
-import copy
+from copy import deepcopy
 
-board = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
+main_board = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
 player_go = 0
-move_value = 0
 while True:
     player_x_or_o = input("Do you want to be x or o?\n").lower()
     if (player_x_or_o == "x") or (player_x_or_o == "o"):
@@ -13,8 +12,11 @@ if player_x_or_o == "x":
     computer_x_or_o = "o"
 else:
     computer_x_or_o = "x"
-for i in board:
-    print(str(i).replace("[", "").replace("]", ""))
+
+
+def print_board():
+    for i in main_board:
+        print(str(i).replace("[", "").replace("]", ""))
 
 
 def is_winner(board_to_check):
@@ -78,178 +80,53 @@ def num_of_spaces(board_to_check_spaces):
     return spaces
 
 
-def possibilities_level_1(board_to_find_posibilities_l1, player_go_x_or_o_l1):
-    global move_value
-    boards = []
-    for f in range(0, 3):
-        for x in range(0, 3):
-            if board_to_find_posibilities_l1[f][x] == " ":
-                new_board = copy.deepcopy(board_to_find_posibilities_l1)
-                new_board[f][x] = player_go_x_or_o_l1
-                if is_winner(new_board) == computer_x_or_o:
-                    move_value += 1
-                elif is_winner(new_board) == player_x_or_o:
-                    move_value -= 1
-                else:
-                    boards.append(new_board)
-    return boards
+def best(board):
+    global board_thats_best
 
+    # Check if the game has a winner
+    winner = is_winner(board)
+    if winner == "x":
+        return 10
+    elif winner == "o":
+        return -10
+    elif num_of_spaces(board) == 0:  # No more moves left
+        return 0
 
-def possibilities_level_1_no_move_value(board_to_find_posibilities_l1, player_go_x_or_o_l1):
-    boards = []
-    for f in range(0, 3):
-        for x in range(0, 3):
-            if board_to_find_posibilities_l1[f][x] == " ":
-                new_board = copy.deepcopy(board_to_find_posibilities_l1)
-                new_board[f][x] = player_go_x_or_o_l1
-                boards.append(new_board)
-    return boards
-
-
-def possibilities_level_2(board_to_find_posibilities_l2, player_go_x_or_o_l2):
-    global move_value
-    boards_level_2 = []
-    if player_go_x_or_o_l2 == "x":
-        other_l2 = "o"
+    # Identify the current player
+    num_of_space_variable = num_of_spaces(board)
+    if num_of_space_variable % 2 == 0:
+        player = "o"
     else:
-        other_l2 = "x"
-    for w in possibilities_level_1(board_to_find_posibilities_l2, other_l2):
-        boards_level_2 += possibilities_level_1(w, player_go_x_or_o_l2)
-    return boards_level_2
+        player = "x"
 
+    possible_moves = []
+    for num_1 in range(3):
+        for num_2 in range(3):
+            if board[num_1][num_2] == " ":
+                temp_board = deepcopy(board)
+                temp_board[num_1][num_2] = player
+                possible_moves.append(temp_board)
 
-def possibilities_level_3(board_to_find_posibilities_l3, player_go_x_or_o_l3):
-    global move_value
-    boards_level_3 = []
-    if player_go_x_or_o_l3 == "x":
-        other_l3 = "o"
+    final_list = []
+    for move in possible_moves:
+        final_list.append(best(move))  # Recursive call to evaluate each move
+
+    # Maximize for 'x' and minimize for 'o'
+    if player == "x":
+        return_value = max(final_list)
+        board_thats_best = possible_moves[final_list.index(return_value)]  # Store the best move
     else:
-        other_l3 = "x"
-    for w in possibilities_level_2(board_to_find_posibilities_l3, other_l3):
-        boards_level_3 += possibilities_level_1(w, player_go_x_or_o_l3)
-    return boards_level_3
+        return_value = min(final_list)
+        board_thats_best = possible_moves[final_list.index(return_value)]  # Store the best move
 
-
-def possibilities_level_4(board_to_find_posibilities_l4, player_go_x_or_o_l4):
-    global move_value
-    boards_level_4 = []
-    if player_go_x_or_o_l4 == "x":
-        other_l4 = "o"
-    else:
-        other_l4 = "x"
-    for w in possibilities_level_3(board_to_find_posibilities_l4, other_l4):
-        boards_level_4 += possibilities_level_1(w, player_go_x_or_o_l4)
-    return boards_level_4
-
-
-def possibilities_level_5(board_to_find_posibilities_l5, player_go_x_or_o_l5):
-    global move_value
-    boards_level_5 = []
-    if player_go_x_or_o_l5 == "x":
-        other_l5 = "o"
-    else:
-        other_l5 = "x"
-    for w in possibilities_level_4(board_to_find_posibilities_l5, other_l5):
-        boards_level_5 += possibilities_level_1(w, player_go_x_or_o_l5)
-    return boards_level_5
-
-
-def possibilities_level_6(board_to_find_posibilities_l6, player_go_x_or_o_l6):
-    global move_value
-    boards_level_6 = []
-    if player_go_x_or_o_l6 == "x":
-        other_l6 = "o"
-    else:
-        other_l6 = "x"
-    for w in possibilities_level_5(board_to_find_posibilities_l6, other_l6):
-        boards_level_6 += possibilities_level_1(w, player_go_x_or_o_l6)
-    return boards_level_6
-
-
-def possibilities_level_7(board_to_find_posibilities_l7, player_go_x_or_o_l7):
-    global move_value
-    boards_level_7 = []
-    if player_go_x_or_o_l7 == "x":
-        other_l7 = "o"
-    else:
-        other_l7 = "x"
-    for w in possibilities_level_6(board_to_find_posibilities_l7, other_l7):
-        boards_level_7 += possibilities_level_1(w, player_go_x_or_o_l7)
-    return boards_level_7
-
-
-def possibilities_level_8(board_to_find_posibilities_l8, player_go_x_or_o_l8):
-    global move_value
-    boards_level_8 = []
-    if player_go_x_or_o_l8 == "x":
-        other_l8 = "o"
-    else:
-        other_l8 = "x"
-    for w in possibilities_level_7(board_to_find_posibilities_l8, other_l8):
-        boards_level_8 += possibilities_level_1(w, player_go_x_or_o_l8)
-    return boards_level_8
-
-
-def possibilities_level_9(board_to_find_posibilities_l9, player_go_x_or_o_l9):
-    global move_value
-    boards_level_9 = []
-    if player_go_x_or_o_l9 == "x":
-        other_l9 = "o"
-    else:
-        other_l9 = "x"
-    for w in possibilities_level_8(board_to_find_posibilities_l9, other_l9):
-        boards_level_9 += possibilities_level_1(w, player_go_x_or_o_l9)
-    return boards_level_9
-
-
-def all_possibilities(board_to_find_all_possibilities):
-    if num_of_spaces(board_to_find_all_possibilities) == 0:
-        return board_to_find_all_possibilities
-    if num_of_spaces(board_to_find_all_possibilities) == 1:
-        return possibilities_level_1(board_to_find_all_possibilities, "x")
-    if num_of_spaces(board_to_find_all_possibilities) == 2:
-        return possibilities_level_2(board_to_find_all_possibilities, "o")
-    if num_of_spaces(board_to_find_all_possibilities) == 3:
-        return possibilities_level_3(board_to_find_all_possibilities, "x")
-    if num_of_spaces(board_to_find_all_possibilities) == 4:
-        return possibilities_level_4(board_to_find_all_possibilities, "o")
-    if num_of_spaces(board_to_find_all_possibilities) == 5:
-        return possibilities_level_5(board_to_find_all_possibilities, "x")
-    if num_of_spaces(board_to_find_all_possibilities) == 6:
-        return possibilities_level_6(board_to_find_all_possibilities, "o")
-    if num_of_spaces(board_to_find_all_possibilities) == 7:
-        return possibilities_level_7(board_to_find_all_possibilities, "x")
-    if num_of_spaces(board_to_find_all_possibilities) == 8:
-        return possibilities_level_8(board_to_find_all_possibilities, "o")
-    if num_of_spaces(board_to_find_all_possibilities) == 9:
-        return possibilities_level_9(board_to_find_all_possibilities, "x")
-
-
-def best_move():
-    global board, move_value
-    best_move_value = -99999999999999999999999999999999
-    best_possible_move = []
-    moves = possibilities_level_1_no_move_value(board, computer_x_or_o)
-    for m in moves:
-        if is_winner(m) == computer_x_or_o:
-            board = copy.deepcopy(m)
-            return
-    for m in moves:
-        move_value = 0
-        all_possibilities(m)
-        if move_value > best_move_value:
-            best_move_value = copy.deepcopy(move_value)
-            best_possible_move = copy.deepcopy(m)
-    board = copy.deepcopy(best_possible_move)
+    return return_value
 
 
 for moves in range(9):
-    if is_winner(board):
-        print(f"{is_winner(board).upper()} wins!")
+    if is_winner(main_board):
+        print(f"{is_winner(main_board).upper()} wins!")
         break
-    if (is_winner(board) == None) and (num_of_spaces(board) == 0):
-        print("It's a draw!")
-        break
+
 
     if is_players_go():
         while True:
@@ -257,8 +134,8 @@ for moves in range(9):
                 row = int(input("What row number do you want to go? (1-3)\n")) - 1
                 column = int(input("What column number do you want to go? (1-3)\n")) - 1
                 if 0 <= row < 3 and 0 <= column < 3:
-                    if board[row][column] == " ":
-                        board[row][column] = player_x_or_o
+                    if main_board[row][column] == " ":
+                        main_board[row][column] = player_x_or_o
                         break
                     else:
                         print("Space taken.")
@@ -267,8 +144,10 @@ for moves in range(9):
             except ValueError:
                 print("Invalid input, please enter a valid number.")
     else:
-        best_move()
+        best(main_board)
+        main_board = deepcopy(board_thats_best)
         print("Computer made its move.")
-    for i in board:
-        print(str(i).replace("[", "").replace("]", ""))
+    print_board()
     player_go += 1
+if (is_winner(main_board) == None) and (num_of_spaces(main_board) == 0):
+    print("It's a draw!")
